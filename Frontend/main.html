@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Main Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom right, #dbeafe, #eef2ff);
+      color: #333;
+      margin: 0;
+      padding: 40px;
+    }
+  
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      padding: 30px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+  
+    h2, h3 {
+      color: #1e3a8a;
+      margin-top: 0;
+    }
+  
+    .header-area {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 6px 12px;
+      font-size: 14px;
+      margin-left: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  
+    button:hover {
+      background-color: #45a049;
+    }
+  
+    input {
+      padding: 8px;
+      margin: 5px 0 15px;
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  
+    .section {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 20px;
+      background: #f9fafb;
+    }
+  
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+  
+    li {
+      background: #f3f4f6;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  
+    .song-card {
+      background: #ffffff;
+      padding: 15px;
+      margin-top: 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+  
+    .song-card img {
+      display: block;
+      margin-bottom: 10px;
+      border-radius: 6px;
+    }
+  </style>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+</head>
+<body>
+  <div class="container">
+    <div class="header-area">
+      <h2>Welcome, <span id="username"></span></h2>
+      <button onclick="logout()">Logout</button>
+    </div>
+
+    <div class="section">
+      <h3>Your Subscribed Songs:</h3>
+      <ul id="subscription-list"></ul>
+    </div>
+
+    <div class="section">
+      <h3>Search for Music:</h3>
+      <label for="title">Title:</label>
+      <input type="text" id="title"><br>
+      <label for="year">Year:</label>
+      <input type="text" id="year"><br>
+      <label for="artist">Artist:</label>
+      <input type="text" id="artist"><br>
+      <label for="album">Album:</label>
+      <input type="text" id="album"><br>
+      <button onclick="handleQuery()">Query</button>
+    </div>
+
+    <div id="search-results"></div>
+  </div>
+
+<script>
+
+
+
+if (!localStorage.getItem("email") || !localStorage.getItem("username")) {
+  window.location.href = "login.html";
+}
+  // Preventing page from being cached after logout
+  window.onload = function () {
+    if ('caches' in window) {
+      caches.keys().then(function(names) {
+        for (let name of names) caches.delete(name);
+      });
+    }
+
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = function () {
+      window.history.pushState(null, "", window.location.href);
+    };
+  };
+
+  document.addEventListener("DOMContentLoaded", async function () {
+    const username = localStorage.getItem("username");
+    const email = localStorage.getItem("email");
+
+    if (!username || !email) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    document.getElementById("username").textContent = username;
+    await loadSubscriptions(email);
+  });
+
+  // This function is used the fetch the subscriptions and load them in the page when the user logs in
+  async function loadSubscriptions(email) {
+    try {
+      const response = await fetch(`/fetchSubscriptions?email=${encodeURIComponent(email)}`);
+      const data = await response.json();
+      const list = document.getElementById("subscription-list");
+      list.innerHTML = "";
+
+      if (data.subscriptions && data.subscriptions.length > 0) {
+        data.subscriptions.forEach(song => {
+          const li = document.createElement("li");
+          li.textContent = `${song.title} by ${song.artist}, from the album ${song.album}, ${song.year}`;
+          const removeBtn = document.createElement("button");
+          removeBtn.textContent = "Remove";
+          removeBtn.onclick = () => unsubscribe(song.song_id);
+          li.appendChild(removeBtn);
+          list.appendChild(li);
+        });
+      } else {
+        list.innerHTML = "<li>No subscriptions yet</li>";
+      }
+    } catch (error) {
+      console.error("Error loading subscriptions:", error);
+    }
+  }
+
+  // This function is basically used to remove a song from the subscription list.
+  async function unsubscribe(songId) {
+  const email = localStorage.getItem("email");
+  const API_URL = "https://wzdblyr8pl.execute-api.us-east-1.amazonaws.com/prod/unsubscribe"; 
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, song_id: songId })
+    });
+
+    const result = await response.json();
+    alert(result.message);
+    if (result.success) {
+      await loadSubscriptions(email); 
+    }
+  } catch (error) {
+    console.error("Unsubscribe error:", error);
+    alert("Something went wrong.");
+  }
+}
+
+
+  // This JavaScript function handleQuery retrieves search criteria (title, year, artist, album) from input fields, sends a POST request to the /queryMusic 
+  // backend endpoint with this data, and then processes and displays the search results. If results are found, it dynamically creates HTML elements to display 
+  // each song's details, including a "Subscribe" button and an artist image fetched using another function. If no results are found, it displays a "No result is 
+  // retrieved" message. The function also includes error handling for the API request.
+  async function handleQuery() {
+    const title = document.getElementById("title").value;
+    const year = document.getElementById("year").value;
+    const artist = document.getElementById("artist").value;
+    const album = document.getElementById("album").value;
+
+    if (!title && !year && !artist && !album) {
+    alert("Please enter at least one search field.");
+    return;
+  }
+
+    try {
+      const response = await fetch(`/queryMusic`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, year, artist, album })
+      });
+
+      const data = await response.json();
+      const resultsDiv = document.getElementById("search-results");
+      resultsDiv.innerHTML = "";
+
+      if (data.results && data.results.length > 0) {
+        resultsDiv.innerHTML = "<h3>Search Results:</h3>";
+        data.results.forEach(song => {
+          const songDiv = document.createElement("div");
+
+          const songTitle = document.createElement("strong");
+          songTitle.textContent = `${song.title} by ${song.artist} (${song.year})`;
+
+          const albumName = document.createElement("p");
+          albumName.textContent = `Album: ${song.album}`;
+
+          const subscribeBtn = document.createElement("button");
+          subscribeBtn.textContent = "Subscribe";
+          subscribeBtn.onclick = () => subscribeSong(song);
+
+          fetchArtistImage(song.artist, imageUrl => {
+            const img = document.createElement("img");
+            img.src = imageUrl;
+            img.alt = song.artist;
+            img.width = 100;
+
+            songDiv.appendChild(img);
+            songDiv.appendChild(songTitle);
+            songDiv.appendChild(albumName);
+            songDiv.appendChild(document.createElement("br"));
+            songDiv.appendChild(subscribeBtn);
+            resultsDiv.appendChild(songDiv);
+          });
+        });
+      } else {
+        resultsDiv.innerHTML = "<h3>No result is retrieved. Please query again</h3>";    
+      }
+    } catch (error) {
+      console.error("Query error:", error);
+    }
+  }
+
+  // This JavaScript function subscribeSong handles the process of a user subscribing to a song. It first retrieves the user's email from local storage and alerts 
+  // the user if they are not logged in. It then determines the song's ID, either using an existing song_id property or generating one using the generateSongId 
+  // function. Finally, it sends a POST request to the provided API_URL with the song details and the user's email. Upon receiving the response, it alerts the user 
+  // with the server's message and, if the subscription was successful, it reloads the user's subscription list. The function includes error handling for the API request.
+  async function subscribeSong(song) {
+  const email = localStorage.getItem("email");
+  if (!email) {
+    alert("You must be logged in to subscribe.");
+    return;
+  }
+
+  const songId = song.song_id || generateSongId(song.title, song.artist, song.album);
+  const API_URL = "https://px4fnx11sc.execute-api.us-east-1.amazonaws.com/prod/subscribe";
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...song, email, song_id: songId })
+    });
+
+    const data = await response.json();
+    alert(data.message);
+    if (data.success) await loadSubscriptions(email);
+  } catch (error) {
+    console.error("Subscription error:", error);
+  }
+}
+
+  function generateSongId(title, artist, album) {
+    return `${title.replace(/\s/g, "").toLowerCase()}_${artist.replace(/\s/g, "").toLowerCase()}_${album.replace(/\s/g, "").toLowerCase()}`;
+  }
+
+  function fetchArtistImage(artist, callback) {
+    fetch('/artistImage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ artist })
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log("🎨 Using artist image:", data.image_url);
+      callback(data.image_url || "https://via.placeholder.com/100");
+    })
+    .catch(() => callback("https://via.placeholder.com/100"));
+  }
+
+
+  function logout() {
+  localStorage.removeItem("email");
+  localStorage.removeItem("username");
+
+  
+  if ('caches' in window) {
+    caches.keys().then(function(names) {
+      for (let name of names) caches.delete(name);
+    });
+  }
+
+  // Preventing back button from accessing cached page
+  window.location.href = "login.html";
+}
+
+  window.addEventListener('pageshow', function (event) {
+  if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
+    window.location.reload();
+  }
+});
+</script>
+
+</body>
+</html>

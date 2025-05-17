@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register Page</title>
+  <style>
+    * {
+        box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #ff7e5f, #feb47b);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .note {
+      position: absolute;
+      color: white;
+      font-size: 24px;
+      opacity: 0.7;
+      animation: float 10s linear infinite;
+    }
+
+    .note:nth-child(1) { top: 20%; left: 10%; animation-duration: 12s; font-size: 20px; }
+    .note:nth-child(2) { top: 40%; left: 80%; animation-duration: 10s; font-size: 30px; }
+    .note:nth-child(3) { top: 60%; left: 30%; animation-duration: 14s; font-size: 25px; }
+    .note:nth-child(4) { top: 80%; left: 60%; animation-duration: 11s; font-size: 22px; }
+    .note:nth-child(5) { top: 10%; left: 50%; animation-duration: 13s; font-size: 28px; }
+
+    @keyframes float {
+      0% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
+      50% { opacity: 1; }
+      100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+    }
+
+    .container {
+      background: white;
+      padding: 30px 20px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      width: 320px;
+      text-align: center;
+      animation: fadeIn 1s ease-out forwards;
+      opacity: 0;
+      transform: translateY(-20px);
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .music-icon {
+      font-size: 40px;
+      color: #ff7e5f;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input:focus {
+      border-color: #ff7e5f;
+      box-shadow: 0 0 8px #ff7e5f88;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #ff7e5f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s, transform 0.2s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #e55d42;
+      transform: scale(1.05);
+    }
+
+    .error {
+      color: red;
+      margin-top: 10px;
+      min-height: 20px;
+    }
+
+    p {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    a {
+      color: #ff7e5f;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Music Notes -->
+  <div class="note">🎵</div>
+  <div class="note">🎶</div>
+  <div class="note">🎵</div>
+  <div class="note">🎶</div>
+  <div class="note">🎵</div>
+
+  <div class="container">
+    <div class="music-icon">🎶</div>
+    <h2>Register</h2>
+    <input type="email" id="email" placeholder="Enter Email" required>
+    <input type="text" id="username" placeholder="Enter Username" required>
+    <input type="password" id="password" placeholder="Enter Password" required>
+    <button onclick="register()">Register</button>
+    <p class="error" id="error-message"></p>
+    <p>Already have an account? <a href="login.html">Login</a></p>
+  </div>
+
+  <script>
+    async function register() {
+      const email = document.getElementById("email").value;
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const errorMessage = document.getElementById("error-message");
+  
+      try {
+        const response = await fetch("https://b63vwbref7.execute-api.us-east-1.amazonaws.com/prod/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, username, password })
+        });
+  
+        const text = await response.text();  
+        let data;
+  
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          data = { success: true };  
+        }
+  
+        if (data.success) {
+          errorMessage.style.color = "green";
+          errorMessage.textContent = "✅ Registration successful! Redirecting to login...";
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 2000);  
+        } else {
+          errorMessage.style.color = "red";
+          errorMessage.textContent = data.message || "Something went wrong!";
+        }
+      } catch (err) {
+        errorMessage.style.color = "red";
+        errorMessage.textContent = "🚫 Network error or invalid response.";
+      }
+    }
+  </script>  
+
+</body>
+</html>

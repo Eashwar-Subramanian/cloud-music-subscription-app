@@ -1,0 +1,49 @@
+Project Setup Instructions
+Folder Structure and Task Mapping
+
+1. The dynamodb/ folder contains code related to user registration and login functionalities using AWS DynamoDB.
+
+2. The s3/ folder contains code related to managing and uploading artist images to AWS S3.
+
+3. The backend/ folder (originally under Task3/) includes Java servlet implementations for login, registration, querying music, subscribing, unsubscribing, and fetching subscriptions.
+
+4. The frontend/ folder contains corresponding HTML pages: login.html, register.html, and main.html.
+
+Prerequisites Before Running the Project
+DynamoDB and S3 Tasks
+
+Before using the DynamoDB or S3-related functionalities, ensure that AWS credentials are configured in the EC2 instance under:
+
+
+nano ~/.aws/credentials
+
+Web Application Tasks (Frontend + Backend)
+
+Before running the servlet-based backend: Ensure that Apache2 and Jetty9 are restarted.
+
+Confirm that AWS credentials are present in the EC2 instance (via PuTTY).
+
+Restart Apache and Jetty:
+
+sudo service apache2 restart
+sudo service jetty9 restart
+
+Deployment Instructions
+The packaged backend .jar file (Task3-1.0-SNAPSHOT-jar-with-dependencies.jar) is located under:
+
+Move it to the EC2 home directory:/home/ubuntu/
+
+The frontend HTML files should be placed in: /var/www/html/
+
+Use FileZilla to transfer files from your local machine to the EC2 directories.
+
+Run the backend in background using:
+
+nohup java -jar Task3-1.0-SNAPSHOT-jar-with-dependencies.jar > output.log 2>&1 &
+
+Accessing the Web Application
+
+Launch the EC2 instance from your AWS account. http://<your-ec2-public-ip>
+
+to interact with the Music Subscription Web App.
+

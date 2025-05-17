@@ -1,0 +1,181 @@
+Lambda Functions:
+
+Registration(WebRegistrationLambda):
+
+import json
+import boto3
+
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('Login')  # Make sure this matches your table name
+
+def lambda_handler(event, context):
+    try:
+        body = json.loads(event['body'])
+        email = body['email']
+        username = body['username']
+        password = body['password']
+
+        # Check if user already exists
+        existing = table.get_item(Key={'email': email})
+        if 'Item' in existing:
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',  # <- Needed for CORS
+                    'Access-Control-Allow-Headers': '*',
+                },
+                'body': json.dumps({'success': False, 'message': 'The email already exists'})
+            }
+
+        # Register new user
+        table.put_item(Item={
+            'email': email,
+            'user_name': username,
+            'password': password
+        })
+
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',  # <- Needed for CORS
+                'Access-Control-Allow-Headers': '*',
+            },
+            'body': json.dumps({'success': True, 'message': 'Registration successful'})
+        }
+
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',  # <- Needed for CORS
+                'Access-Control-Allow-Headers': '*',
+            },
+            'body': json.dumps({'success': False, 'message': str(e)})
+        }
+
+
+Subscription (WebSubscribeLambda):
+import json
+import boto3
+from boto3.dynamodb.conditions import Key
+
+dynamodb = boto3.resource('dynamodb')
+subscriptions_table = dynamodb.Table('subscriptions')
+
+def lambda_handler(event, context):
+    try:
+        body = json.loads(event['body'])
+
+        email = body['email']
+        title = body['title']
+        artist = body['artist']
+        album = body['album']
+        year = body['year']
+        action = body.get('action', 'subscribe')
+        song_id = body.get('song_id') or generate_song_id(title, artist, album)
+
+        if not song_id:
+            return respond(False, "Error: Song does not have an ID.")
+
+        if action == 'unsubscribe':
+            return unsubscribe_song(email, song_id)
+        else:
+            return subscribe_song(email, song_id, title, artist, album, year)
+
+    except Exception as e:
+        return respond(False, f"Unexpected error: {str(e)}")
+
+
+def subscribe_song(email, song_id, title, artist, album, year):
+    try:
+        # Check if already subscribed
+        response = subscriptions_table.get_item(Key={'email': email, 'song_id': song_id})
+        if 'Item' in response:
+            return respond(False, "You have already subscribed to this song.")
+
+        subscriptions_table.put_item(Item={
+            'email': email,
+            'song_id': song_id,
+            'title': title,
+            'artist': artist,
+            'album': album,
+            'year': year
+        })
+
+        return respond(True, f"Subscribed to {title} by {artist}")
+    except Exception as e:
+        return respond(False, f"Error subscribing to song: {str(e)}")
+
+
+def unsubscribe_song(email, song_id):
+    try:
+        subscriptions_table.delete_item(Key={'email': email, 'song_id': song_id})
+        return respond(True, "Unsubscribed from the song.")
+    except Exception as e:
+        return respond(False, f"Error unsubscribing: {str(e)}")
+
+
+def generate_song_id(title, artist, album):
+    return f"{title}{artist}{album}".replace(" ", "").lower()
+
+
+def respond(success, message):
+    return {
+        'statusCode': 200,
+        'headers': {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Methods': 'OPTIONS,POST'
+        },
+        'body': json.dumps({
+            'success': success,
+            'message': message
+        })
+    }
+
+
+Unsubscribe (WebUnsubscribeLambda):
+import json
+import boto3
+
+dynamodb = boto3.resource('dynamodb')
+subscriptions_table = dynamodb.Table('subscriptions')
+
+def lambda_handler(event, context):
+    try:
+        body = json.loads(event['body'])
+        email = body['email']
+        song_id = body['song_id']
+
+        subscriptions_table.delete_item(Key={'email': email, 'song_id': song_id})
+
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,POST",
+                "Access-Control-Allow-Headers": "Content-Type"
+            },
+            "body": json.dumps({
+                "success": True,
+                "message": "Unsubscribed successfully"
+            })
+        }
+
+    except Exception as e:
+        print("Error:", e)
+        return {
+            "statusCode": 500,
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,POST",
+                "Access-Control-Allow-Headers": "Content-Type"
+            },
+            "body": json.dumps({
+                "success": False,
+                "message": "Failed to unsubscribe"
+            })
+        }

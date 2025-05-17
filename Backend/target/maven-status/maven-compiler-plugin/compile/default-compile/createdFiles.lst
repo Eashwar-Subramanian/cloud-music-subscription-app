@@ -1,0 +1,11 @@
+com\amazonaws\CORSFilter.class
+com\amazonaws\FetchSubscriptionsServlet.class
+com\amazonaws\LoginServer.class
+com\amazonaws\MainPageServlet.class
+com\amazonaws\QueryMusicServlet.class
+com\amazonaws\ArtistImageServlet.class
+com\amazonaws\LoginServer$LoginServlet.class
+com\amazonaws\LogoutServlet.class
+com\amazonaws\SubscribeServlet.class
+com\amazonaws\DynamoDBManager.class
+com\amazonaws\RegisterServlet.class
