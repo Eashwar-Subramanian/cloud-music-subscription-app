@@ -29,33 +29,6 @@ This project is a full-stack cloud-based music subscription web application deve
 
 ---
 
-## 📁 Project Structure
-
-music-subscription-app/
-├── backend/
-│ ├── LoginServlet.java
-│ ├── RegisterServlet.java
-│ ├── QueryMusicServlet.java
-│ ├── SubscribeServlet.java
-│ ├── UnsubscribeServlet.java
-│ ├── FetchSubscriptionsServlet.java
-│ ├── ArtistImageServlet.java
-│ └── pom.xml
-├── frontend/
-│ ├── login.html
-│ ├── main.html
-│ └── script.js
-├── lambda/
-│ ├── RegisterFunction.py
-│ ├── SubscribeFunction.py
-│ └── UnsubscribeFunction.py
-├── s3/
-│ └── CreateBucket2.java
-│ ├── ImageDownloaderUploader.java
-├── Instructions
-└── README.md
-
-
 ---
 
 ## 🔄 Backend API Endpoints (via Jetty & Apache2 Reverse Proxy)
