@@ -1,70 +1,73 @@
-# Cloud Based Music Subscription Web Application
-This project is a full-stack cloud-based music subscription web application developed as part of my **Cloud Computing course**. It showcases real-world integration of **AWS services**, **Java backend (Servlets)**, and **HTML/CSS/JavaScript frontend**, hosted on an **EC2 instance** with **Apache2 and Jetty**.
+# Cloud-Based Music Subscription Web Application
+**Full-stack music platform with AWS integration and subscription management**
 
----
+## 🎯 Application Overview
+Complete web-based music subscription service demonstrating cloud architecture integration, user management, and AWS services coordination in a production-like environment.
 
-## 🚀 Features
+## ✅ Core Features
+- **User Authentication:** Login and registration system
+- **Music Discovery:** Search functionality by title, artist, year, album
+- **Subscription Management:** Subscribe/unsubscribe to songs
+- **Media Integration:** Artist image display via AWS S3
+- **Real-time Updates:** Dynamic frontend with live data refresh
 
-- ✅ **User Authentication** (Login/Register)
-- ✅ **Music Search & Query Interface**
-- ✅ **Subscribe/Unsubscribe to Songs**
-- ✅ **Fetch & Display Artist Images from AWS S3**
-- ✅ **Dynamic Frontend with Real-Time Updates**
-- ✅ **Presigned URL generation for image access**
-- ✅ **Backend APIs using Java Servlets**
-- ✅ **Deployed on EC2 with Apache2 (Reverse Proxy)**
-- ✅ **Integration with AWS Services (DynamoDB, Lambda, S3, API Gateway)**
+## 🏗️ Architecture Components
+**Frontend:**
+- HTML/CSS/JavaScript interface
+- Dynamic content updates
+- Responsive design implementation
 
----
+**Backend:**
+- Java Servlets on Jetty server
+- RESTful API endpoints
+- Apache2 reverse proxy configuration
 
-## 💻 Technologies Used
+**AWS Integration:**
+- **S3:** Artist image storage with presigned URL access
+- **DynamoDB:** User data and subscription storage
+- **Lambda:** Serverless functions for subscription logic
+- **EC2:** Application hosting on Ubuntu
+- **API Gateway:** Lambda function exposure
 
-| Component | Technology |
-|----------|------------|
-| Backend  | Java Servlets (Jetty Server) |
-| Frontend | HTML, CSS, JavaScript |
-| Deployment | Apache2 on EC2 (Ubuntu), Jetty |
-| AWS Services | S3, DynamoDB, Lambda, API Gateway |
-| Other Tools | PuTTY, Git, nano, `nohup` command |
+## 🔧 Technical Implementation
+**Deployment Environment:**
+- **Server:** EC2 Ubuntu instance
+- **Web Server:** Apache2 with reverse proxy (port 80 → 8080)
+- **Application Server:** Jetty for servlet container
+- **Process Management:** nohup for persistent service
 
----
+**API Endpoints:**
+- `/login` - User authentication
+- `/Register` - New user registration  
+- `/queryMusic` - Music search functionality
+- `/subscribe` - Song subscription handling
+- `/unsubscribe` - Subscription removal
+- `/fetchSubscriptions` - User subscription retrieval
+- `/artistImage` - S3 image access via signed URLs
 
----
+## 🌐 AWS Services Integration
+**Amazon S3:**
+- Artist image storage and retrieval
+- Presigned URL generation for secure access
+- Media content management
 
-## 🔄 Backend API Endpoints (via Jetty & Apache2 Reverse Proxy)
+**DynamoDB:**
+- NoSQL database for user profiles
+- Subscription tracking and management
+- Scalable data storage solution
 
-| Endpoint | Description |
-|---------|-------------|
-| `/login` | Authenticates a user |
-| `/Register` | Registers a new user |
-| `/queryMusic` | Searches music by title/artist/year/album |
-| `/subscribe` | Subscribes user to selected song |
-| `/unsubscribe` | Unsubscribes song |
-| `/fetchSubscriptions` | Fetches all subscriptions of a user |
-| `/artistImage` | Retrieves artist image via signed S3 URL |
+**Lambda Functions:**
+- Python-based serverless subscription logic
+- Event-driven subscription processing
+- Cost-effective compute for specific operations
 
----
-
-## 🌐 AWS Integration Details
-
-- ✅ **S3** — Stores artist images (fetched via signed URL in `ArtistImageServlet`)
-- ✅ **DynamoDB** — Stores user info and song subscriptions
-- ✅ **Lambda + API Gateway** — Handles registration, subscription, and unsubscription via Python-based Lambda functions
-- ✅ **EC2** — Hosts the entire application using Apache2 and Jetty
-
----
-
-## 🧩 Reverse Proxy Configuration (Apache2 Virtual Host)
-
-Configured in `/etc/apache2/sites-available/000-default.conf` to forward API requests from port **80 → 8080**:
-
+## 🚀 Deployment Configuration
+**Apache2 Virtual Host Setup:**
 ```apache
 <VirtualHost *:80>
     DocumentRoot /var/www/html
     DirectoryIndex login.html
-
     ProxyPass /login http://localhost:8080/login
     ProxyPassReverse /login http://localhost:8080/login
-    ...
+    # Additional proxy configurations for all endpoints
 </VirtualHost>
-
